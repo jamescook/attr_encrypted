@@ -123,12 +123,11 @@ module AttrEncrypted
       attr_writer encrypted_attribute_name unless instance_methods_as_symbols.include?(:"#{encrypted_attribute_name}=")
 
       define_method(attribute) do
-        instance_variable_get("@#{attribute}") || instance_variable_set("@#{attribute}", decrypt(attribute, send(encrypted_attribute_name)))
+        get_encrypted_attribute(attribute, encrypted_attribute_name)
       end
 
       define_method("#{attribute}=") do |value|
-        send("#{encrypted_attribute_name}=", encrypt(attribute, value))
-        instance_variable_set("@#{attribute}", value)
+        set_encrypted_attribute(attribute, encrypted_attribute_name, value)
       end
 
       define_method("#{attribute}?") do
@@ -277,6 +276,14 @@ module AttrEncrypted
     end
 
     protected
+      def set_encrypted_attribute(attribute, encrypted_attribute_name, value)
+        send("#{encrypted_attribute_name}=", encrypt(attribute, value))
+        instance_variable_set("@#{attribute}", value)
+      end
+
+      def get_encrypted_attribute(attribute, encrypted_attribute_name)
+        instance_variable_get("@#{attribute}") || instance_variable_set("@#{attribute}", decrypt(attribute, send(encrypted_attribute_name)))
+      end
 
       # Returns attr_encrypted options evaluated in the current object's scope for the attribute specified
       def evaluated_attr_encrypted_options_for(attribute)
